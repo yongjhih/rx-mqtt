@@ -1,0 +1,8 @@
+// Setup: classpath 'org.kt3k.gradle.plugin:coveralls-gradle-plugin:2.6.3'
+
+apply from: 'jacoco.gradle'
+apply plugin: 'com.github.kt3k.coveralls'
+
+tasks.coveralls {
+    dependsOn 'jacocoTestReport'
+}
