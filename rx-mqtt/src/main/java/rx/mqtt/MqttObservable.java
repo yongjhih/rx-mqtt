@@ -64,7 +64,7 @@ public class MqttObservable {
             }
         });
     }
-    public static Observable<MqttMessage> msg(final String url, final String topic, final String id) {
+    public static Observable<MqttMessage> message(final String url, final String topic, final String id) {
         MemoryPersistence persistence = new MemoryPersistence();
         MqttClient client = null;
         try {

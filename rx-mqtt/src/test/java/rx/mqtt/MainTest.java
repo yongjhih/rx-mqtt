@@ -13,11 +13,10 @@ import static org.junit.Assert.fail;
 
 public class MainTest {
 
-
     // docker run -it yongjhih/mosquitto mosquitto_sub -h test.mosquitto.org -t "#" -v
     @Test
     public void testMsg() {
-        TestObserver observer = MqttObservable.msg("tcp://test.mosquitto.org:1883", "#", "rxmqtt").doOnNext(new Consumer<MqttMessage>() {
+        TestObserver observer = MqttObservable.message("tcp://test.mosquitto.org:1883", "#", "rxmqtt").doOnNext(new Consumer<MqttMessage>() {
             @Override
             public void accept(MqttMessage msg) throws Exception {
                 System.out.println(msg);

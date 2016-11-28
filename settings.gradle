@@ -1,2 +1,3 @@
 include ':rx-mqtt'
 include ':rx-mqtt-android'
+include ':rx-mqtt-android-app'
