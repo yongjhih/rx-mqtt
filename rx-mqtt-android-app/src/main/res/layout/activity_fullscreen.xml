@@ -1,4 +1,4 @@
-<android.support.constraint.ConstraintLayout
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -7,6 +7,4 @@
     android:background="#d81a60"
     tools:context=".FullscreenActivity"
     android:id="@+id/fullscreen"
-    android:orientation="vertical">
-
-</android.support.constraint.ConstraintLayout>
+    android:orientation="vertical" />
