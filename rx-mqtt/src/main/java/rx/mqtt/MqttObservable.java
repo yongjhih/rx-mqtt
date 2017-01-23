@@ -106,7 +106,7 @@ public class MqttObservable {
             return connect(client, options).flatMap(new Function<MqttClient, ObservableSource<MqttMessage>>() {
             //return connect(client).flatMap(new Function<MqttClient, ObservableSource<MqttMessage>>() {
                 @Override
-                public ObservableSource<MqttMessage> apply(MqttClient clkient) throws Exception {
+                public ObservableSource<MqttMessage> apply(MqttClient client) throws Exception {
                     return msgObs;
                 }
             });

@@ -11,6 +11,8 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
 import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;
+import io.reactivex.ObservableSource;
+import io.reactivex.functions.Function;
 
 /**
  * Created by andrew on 11/28/16.
@@ -18,7 +20,7 @@ import io.reactivex.ObservableOnSubscribe;
 
 public class MqttObservable {
     public static Observable<MqttMessage> message(final MqttAndroidClient client, final String topic) {
-        return Observable.create(new ObservableOnSubscribe<MqttMessage>() {
+        final Observable<MqttMessage> msgObs = Observable.create(new ObservableOnSubscribe<MqttMessage>() {
             @Override
             public void subscribe(final ObservableEmitter<MqttMessage> emitter) throws Exception {
                 client.subscribe(topic, 0, new IMqttMessageListener() {
@@ -29,25 +31,43 @@ public class MqttObservable {
                 });
             }
         });
+
+        if (client.isConnected()) {
+            return msgObs;
+        } else {
+            MqttConnectOptions options = new MqttConnectOptions();
+            options.setCleanSession(true);
+            return connect(client, options).flatMap(new Function<IMqttToken, ObservableSource<MqttMessage>>() {
+                //return connect(client).flatMap(new Function<IMqttToken, ObservableSource<MqttMessage>>() {
+                @Override
+                public ObservableSource<MqttMessage> apply(IMqttToken token) throws Exception {
+                    return msgObs;
+                }
+            });
+        }
     }
 
     public static Observable<IMqttToken> connect(final MqttAndroidClient client) {
-        final MqttConnectOptions mqttConnectOptions = new MqttConnectOptions();
-        mqttConnectOptions.setAutomaticReconnect(true);
-        mqttConnectOptions.setCleanSession(false);
+        return connect(client, null, null);
+    }
 
+    public static Observable<IMqttToken> connect(final MqttAndroidClient client, final MqttConnectOptions options) {
+        final DisconnectedBufferOptions bufferOptions = new DisconnectedBufferOptions();
+        bufferOptions.setBufferEnabled(true);
+        bufferOptions.setBufferSize(100);
+        bufferOptions.setPersistBuffer(false);
+        bufferOptions.setDeleteOldestMessages(false);
+        return connect(client, options, bufferOptions);
+    }
+
+    public static Observable<IMqttToken> connect(final MqttAndroidClient client, final MqttConnectOptions options, final DisconnectedBufferOptions bufferOption) {
         return Observable.create(new ObservableOnSubscribe<IMqttToken>() {
             @Override
             public void subscribe(final ObservableEmitter<IMqttToken> emitter) throws Exception {
-                client.connect(mqttConnectOptions, null, new IMqttActionListener() {
+                client.connect(options, null, new IMqttActionListener() {
                     @Override
                     public void onSuccess(IMqttToken token) {
-                        DisconnectedBufferOptions disconnectedBufferOptions = new DisconnectedBufferOptions();
-                        disconnectedBufferOptions.setBufferEnabled(true);
-                        disconnectedBufferOptions.setBufferSize(100);
-                        disconnectedBufferOptions.setPersistBuffer(false);
-                        disconnectedBufferOptions.setDeleteOldestMessages(false);
-                        client.setBufferOpts(disconnectedBufferOptions);
+                        if (bufferOption != null) client.setBufferOpts(bufferOption);
                         emitter.onNext(token);
                     }
 

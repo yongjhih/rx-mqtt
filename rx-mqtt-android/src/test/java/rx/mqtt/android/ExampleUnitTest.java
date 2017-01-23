@@ -2,7 +2,6 @@ package rx.mqtt.android;
 
 import org.eclipse.paho.android.service.MqttAndroidClient;
 import org.eclipse.paho.android.service.MqttService;
-import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.IMqttToken;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.junit.After;
@@ -40,7 +39,7 @@ public class ExampleUnitTest {
             }
         }).test();
         try {
-            observer.await(3, SECONDS);
+            observer.await(10, SECONDS);
         } catch (InterruptedException e) {
             fail(e.toString());
             e.printStackTrace();
