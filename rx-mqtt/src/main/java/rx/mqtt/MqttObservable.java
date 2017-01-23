@@ -1,7 +1,12 @@
 package rx.mqtt;
 
 
+import org.eclipse.paho.client.mqttv3.IMqttActionListener;
+import org.eclipse.paho.client.mqttv3.IMqttAsyncClient;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
+import org.eclipse.paho.client.mqttv3.IMqttMessageListener;
+import org.eclipse.paho.client.mqttv3.IMqttToken;
+import org.eclipse.paho.client.mqttv3.MqttAsyncClient;
 import org.eclipse.paho.client.mqttv3.MqttCallback;
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttClientPersistence;
@@ -21,33 +26,32 @@ import io.reactivex.functions.Function;
  */
 
 public class MqttObservable {
-    public static Observable<MqttClient> client(final String url) {
+    public static Observable<IMqttAsyncClient> client(final String url) {
         return client(url, MqttClient.generateClientId());
     }
 
-    public static Observable<MqttClient> client(final String url, final String id) {
+    public static Observable<IMqttAsyncClient> client(final String url, final String id) {
         return client(url, id, new MemoryPersistence());
     }
 
-    public static Observable<MqttClient> client(final String url, final String id, final MqttClientPersistence persistence) {
+    public static Observable<IMqttAsyncClient> client(final String url, final String id, final MqttClientPersistence persistence) {
         try {
-            return Observable.just(new MqttClient(url, id, persistence));
+            return Observable.just(new MqttAsyncClient(url, id, persistence));
         } catch (MqttException e) {
             e.printStackTrace();
             return Observable.error(e);
         }
     }
 
-    public static Observable<MqttClient> connect(final MqttClient client) {
+    public static Observable<IMqttToken> connect(final IMqttAsyncClient client) {
         return connect(client, null);
     }
 
-    public static Observable<MqttClient> connect(final MqttClient client, final MqttConnectOptions options) {
-        return Observable.create(new ObservableOnSubscribe<MqttClient>() {
+    public static Observable<IMqttToken> connect(final IMqttAsyncClient client, final MqttConnectOptions options) {
+        return Observable.create(new ObservableOnSubscribe<IMqttToken>() {
             @Override
-            public void subscribe(ObservableEmitter<MqttClient> emitter) throws Exception {
+            public void subscribe(ObservableEmitter<IMqttToken> emitter) throws Exception {
                 client.setCallback(new MqttCallback() {
-
                     @Override
                     public void connectionLost(Throwable e) {
                         emitter.onError(e);
@@ -60,29 +64,33 @@ public class MqttObservable {
 
                     @Override
                     public void deliveryComplete(IMqttDeliveryToken token) {
+                        // nothing
                     }
                 });
 
-                if (options == null) {
-                    client.connect();
-                } else {
-                    client.connect(options);
-                }
-                emitter.onNext(client);
-                emitter.onComplete();
+                client.connect(options, null, new IMqttActionListener() {
+                    @Override
+                    public void onSuccess(IMqttToken token) {
+                        emitter.onNext(token);
+                    }
+
+                    @Override
+                    public void onFailure(IMqttToken token, Throwable e) {
+                        emitter.onError(e);
+                    }
+                });
             }
         });
     }
 
-    public static Observable<MqttMessage> message(final MqttClient client, final String topic) {
+    public static Observable<MqttMessage> message(final IMqttAsyncClient client, final String topic) {
         final Observable<MqttMessage> msgObs = Observable.create(new ObservableOnSubscribe<MqttMessage>() {
             @Override
             public void subscribe(ObservableEmitter<MqttMessage> emitter) throws Exception {
                 client.setCallback(new MqttCallback() {
-
                     @Override
                     public void connectionLost(Throwable e) {
-                        emitter.onError(e);
+                        emitter.onError(e); // careful duplicated onError(e), but we think emitter can figure out
                     }
 
                     @Override
@@ -95,7 +103,23 @@ public class MqttObservable {
                         // nothing
                     }
                 });
-                client.subscribe(topic);
+                client.subscribe(topic, 0, null, new IMqttActionListener() {
+                    @Override
+                    public void onSuccess(IMqttToken token) {
+                        // noting
+                    }
+
+                    @Override
+                    public void onFailure(IMqttToken token, Throwable e) {
+                        emitter.onError(e); // careful duplicated onError(e), but we think emitter can figure out
+                    }
+                }, new IMqttMessageListener() {
+                    @Override
+                    public void messageArrived(String topic, MqttMessage message) throws Exception {
+                        // 69.7 46.7 18660 ?
+                        //emitter.onNext(message);
+                    }
+                });
             }
         });
         if (client.isConnected()) {
@@ -103,10 +127,10 @@ public class MqttObservable {
         } else {
             MqttConnectOptions options = new MqttConnectOptions();
             options.setCleanSession(true);
-            return connect(client, options).flatMap(new Function<MqttClient, ObservableSource<MqttMessage>>() {
-            //return connect(client).flatMap(new Function<MqttClient, ObservableSource<MqttMessage>>() {
+            return connect(client, options).flatMap(new Function<IMqttToken, ObservableSource<MqttMessage>>() {
+            //return connect(client).flatMap(new Function<IMqttToken, ObservableSource<MqttMessage>>() {
                 @Override
-                public ObservableSource<MqttMessage> apply(MqttClient client) throws Exception {
+                public ObservableSource<MqttMessage> apply(IMqttToken token) throws Exception {
                     return msgObs;
                 }
             });
