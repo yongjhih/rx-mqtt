@@ -7,6 +7,14 @@
 
 ## Usage
 
+For pure Java:
+
+```java
+MqttObservable.client("tcp://test.mosquitto.org:1883")
+  .flatMap(client -> MqttObservable.message(client, "#"))
+  .subscribe(System.out::println);
+```
+
 For Android:
 
 ```java
