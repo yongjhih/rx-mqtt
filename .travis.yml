@@ -17,7 +17,8 @@ before_install:
 script:
     - ./gradlew clean assemble check
 after_success:
-      - bash <(curl -s https://codecov.io/bash)
+    - ./gradlew jacocoTestReport
+    - bash <(curl -s https://codecov.io/bash)
 licenses:
   - android-sdk-license-.+
   - '.+'
