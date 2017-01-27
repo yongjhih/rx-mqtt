@@ -38,6 +38,6 @@ tasks.withType(Test) {
 }
 
 apply from: 'javadoc.gradle'
-apply from: 'jacoco-coveralls.gradle'
+apply from: 'jacoco.gradle'
 
 apply plugin: 'maven'

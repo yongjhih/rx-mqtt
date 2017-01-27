@@ -1,7 +1,7 @@
 [![JitPack](https://img.shields.io/github/tag/yongjhih/rx-mqtt.svg?label=JitPack)](https://jitpack.io/#yongjhih/rx-mqtt)
 [![javadoc](https://img.shields.io/github/tag/yongjhih/rx-mqtt.svg?label=javadoc)](https://jitpack.io/com/github/yongjhih/rx-mqtt/rx-mqtt/-SNAPSHOT/javadoc/)
 [![Build Status](https://travis-ci.org/yongjhih/rx-mqtt.svg)](https://travis-ci.org/yongjhih/rx-mqtt)
-[![Coverage Status](https://coveralls.io/repos/github/yongjhih/rx-mqtt/badge.svg?branch=master)](https://coveralls.io/github/yongjhih/rx-mqtt?branch=master)
+[![codecov](https://codecov.io/gh/yongjhih/rx-mqtt/branch/master/graph/badge.svg)](https://codecov.io/gh/yongjhih/rx-mqtt)
 
 # rx-mqtt
 
