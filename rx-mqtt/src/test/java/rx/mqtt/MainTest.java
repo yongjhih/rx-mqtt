@@ -38,6 +38,6 @@ public class MainTest {
                 System.out.println("accept msg");
                 System.out.println(new String(msg.getPayload()));
             }
-       }).subscribeOn(Schedulers.io()).take(5).test().awaitDone(15, SECONDS).assertValueCount(5);
+       }).subscribeOn(Schedulers.io()).take(2).test().awaitDone(60, SECONDS).assertValueCount(2);
     }
 }
