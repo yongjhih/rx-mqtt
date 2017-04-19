@@ -10,15 +10,14 @@
 For pure Java:
 
 ```java
-MqttObservable.client("tcp://test.mosquitto.org:1883")
-  .flatMap(client -> MqttObservable.message(client, "#"))
+  RxMqtt.message(RxMqtt.client("tcp://test.mosquitto.org:1883"), "#"))
   .subscribe(System.out::println);
 ```
 
 For Android:
 
 ```java
-MqttObservable.message(new MqttAndroidClient(context, "tcp://test.mosquitto.org:1883", "rxmqtt"), "#")
+RxMqtt.message(RxMqtt.client(context, "tcp://test.mosquitto.org:1883"), "#")
   .subscribe(System.out::println);
 ```
 
@@ -38,7 +37,7 @@ repositories {
 }
 
 dependencies {
-    //compile 'com.github.yongjhih.rx-mqtt:rx-mqtt:-SNAPSHOT'
+    //compile 'com.github.yongjhih.rx-mqtt:rx-mqtt:-SNAPSHOT' // for pure java
     compile 'com.github.yongjhih.rx-mqtt:rx-mqtt-android:-SNAPSHOT'
 }
 ```
@@ -46,7 +45,7 @@ dependencies {
 ## LICENSE
 
 ```
-Copyright 2016 8tory, Inc.
+Copyright 2016 Andrew Chen
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

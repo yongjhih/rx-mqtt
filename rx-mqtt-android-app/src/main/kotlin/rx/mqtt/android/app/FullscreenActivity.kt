@@ -1,10 +1,11 @@
 package rx.mqtt.android.app
 
 import android.os.Bundle
-import rx.mqtt.android.MqttObservable
+import rx.mqtt.android.RxMqtt
 import android.view.View
 import com.trello.rxlifecycle2.components.support.RxAppCompatActivity
 import io.reactivex.android.schedulers.AndroidSchedulers.mainThread
+import io.reactivex.schedulers.Schedulers.io
 import kotterknife.bindView
 import org.eclipse.paho.android.service.MqttAndroidClient
 
@@ -12,11 +13,10 @@ class FullscreenActivity : RxAppCompatActivity() {
     val mContentView: View by bindView(R.id.fullscreen)
 
     val url = "tcp://test.mosquitto.org:1883"
-    val id = "rxmqtt"
     val topic = "#"
 
     val mqttAndroidClient: MqttAndroidClient by lazy {
-        MqttAndroidClient(applicationContext, url, id)
+        RxMqtt.client(applicationContext, url)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -35,11 +35,12 @@ class FullscreenActivity : RxAppCompatActivity() {
                 View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or
                 View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
 
-        MqttObservable.connect(mqttAndroidClient)
-                .flatMap { MqttObservable.message(mqttAndroidClient, topic) }
+        RxMqtt.connect(mqttAndroidClient)
+                .flatMap { RxMqtt.message(mqttAndroidClient, topic) }
                 .map { String(it.payload) }
-                .compose(bindToLifecycle())
                 .observeOn(mainThread())
+                .subscribeOn(io())
+                //.compose(bindToLifecycle())
                 .subscribe (::println, ::println)
     }
 }

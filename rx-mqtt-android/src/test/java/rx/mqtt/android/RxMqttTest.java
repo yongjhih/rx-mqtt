@@ -3,6 +3,7 @@ package rx.mqtt.android;
 import org.eclipse.paho.android.service.MqttAndroidClient;
 import org.eclipse.paho.android.service.MqttService;
 import org.eclipse.paho.client.mqttv3.IMqttToken;
+import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.junit.After;
 import org.junit.Before;
@@ -23,16 +24,15 @@ import static org.junit.Assert.*;
 @RunWith(RobolectricTestRunner.class)
 //@RunWith(RobolectricGradleTestRunner.class)
 @Config(constants = BuildConfig.class, sdk = 21)
-public class ExampleUnitTest {
+public class RxMqttTest {
     public static final String url = "tcp://test.mosquitto.org:1883";
-    public static final String id = "rxmqtt";
     public static final String topic = "#";
 
     //@Test
     // MqttAndroidClient cannot retrieve MqttService by intent
-    public void testMsg() {
-        final MqttAndroidClient client = new MqttAndroidClient(RuntimeEnvironment.application, url, id);
-        TestObserver observer = MqttObservable.message(client, topic).doOnNext(new Consumer<MqttMessage>() {
+    public void testMsg() throws MqttException {
+        final MqttAndroidClient client = RxMqtt.client(RuntimeEnvironment.application, url);
+        TestObserver observer = RxMqtt.message(client, topic).doOnNext(new Consumer<MqttMessage>() {
             @Override
             public void accept(MqttMessage msg) throws Exception {
                 System.out.println(msg);
@@ -49,9 +49,9 @@ public class ExampleUnitTest {
     }
 
     @Test
-    public void testConnect() {
-        final MqttAndroidClient client = new MqttAndroidClient(RuntimeEnvironment.application, url, id);
-        TestObserver observer = MqttObservable.connect(client).doOnNext(new Consumer<IMqttToken>() {
+    public void testConnect() throws MqttException {
+        final MqttAndroidClient client = RxMqtt.client(RuntimeEnvironment.application, url);
+        TestObserver observer = RxMqtt.connect(client).doOnNext(new Consumer<IMqttToken>() {
             @Override
             public void accept(IMqttToken token) throws Exception {
                 System.out.println(token);

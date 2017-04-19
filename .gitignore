@@ -5,3 +5,5 @@
 build/
 /captures
 /.idea
+
+.*.sw[p-z]

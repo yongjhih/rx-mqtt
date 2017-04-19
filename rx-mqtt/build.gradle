@@ -18,7 +18,7 @@ apply plugin: 'java'
 //apply plugin: "net.ltgt.errorprone"
 
 dependencies {
-    compile 'io.reactivex.rxjava2:rxjava:2.0.1'
+    compile 'io.reactivex.rxjava2:rxjava:2.0.8'
     compile 'org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.1.0'
 
     testCompile 'junit:junit:4.12'
