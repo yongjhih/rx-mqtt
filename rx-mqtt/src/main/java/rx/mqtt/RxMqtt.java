@@ -18,6 +18,7 @@ import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 import io.reactivex.Maybe;
 import io.reactivex.MaybeEmitter;
 import io.reactivex.MaybeOnSubscribe;
+import io.reactivex.MaybeSource;
 import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;
@@ -25,9 +26,7 @@ import io.reactivex.ObservableSource;
 import io.reactivex.annotations.CheckReturnValue;
 import io.reactivex.annotations.NonNull;
 import io.reactivex.annotations.Nullable;
-import io.reactivex.functions.Cancellable;
 import io.reactivex.functions.Function;
-import io.reactivex.schedulers.Schedulers;
 
 /**
  * Created by andrew on 11/17/16.
@@ -165,18 +164,6 @@ public class RxMqtt {
             @Override
             public void subscribe(@NonNull final ObservableEmitter<MqttMessage> emitter)
                     throws Exception {
-                emitter.setCancellable(new Cancellable() {
-                    @Override
-                    public void cancel() throws Exception {
-                        Schedulers.io().createWorker().schedule(new Runnable() {
-                            @Override
-                            public void run() {
-                                disconnectAndCloseAsync(client);
-                            }
-                        });
-                    }
-                });
-
                 client.setCallback(new MqttCallback() {
                     @Override
                     public void connectionLost(@Nullable final Throwable e) {
@@ -244,6 +231,71 @@ public class RxMqtt {
                     return msgObs;
                 }
             });
+        }
+    }
+
+    public static class MqttPublishException extends RuntimeException {
+        private final IMqttToken token;
+        public MqttPublishException(@NonNull IMqttToken token, @NonNull Throwable cause) {
+            super(cause);
+            this.token = token;
+        }
+
+        public MqttPublishException(@NonNull IMqttToken token) {
+            this.token = token;
+        }
+
+        @NonNull
+        public IMqttToken getToken() {
+            return token;
+        }
+    }
+
+    @NonNull
+    @CheckReturnValue
+    public static Maybe<IMqttToken> publish(@NonNull final IMqttAsyncClient client,
+                                            @NonNull final String topic,
+                                            @NonNull final MqttMessage message) {
+        final Maybe<IMqttToken> maybe =
+                Maybe.create(new MaybeOnSubscribe<IMqttToken>() {
+                    @Override
+                    public void subscribe(
+                            @NonNull final MaybeEmitter<IMqttToken> emitter) throws Exception {
+                        client.publish(topic, message, null, new IMqttActionListener() {
+                            @Override
+                            public void onSuccess(@NonNull IMqttToken asyncActionToken) {
+                                if (!emitter.isDisposed()) {
+                                    emitter.onSuccess(asyncActionToken);
+                                }
+                            }
+
+                            @Override
+                            public void onFailure(@NonNull IMqttToken asyncActionToken,
+                                                  @Nullable Throwable e) {
+                                if (!emitter.isDisposed()) {
+                                    if (e != null) {
+                                        emitter.onError(new MqttPublishException(asyncActionToken, e));
+                                    } else {
+                                        emitter.onError(new MqttPublishException(asyncActionToken));
+                                    }
+                                }
+                            }
+                        });
+                    }
+                });
+
+        if (client.isConnected()) {
+            return maybe;
+        } else {
+            MqttConnectOptions options = new MqttConnectOptions();
+            options.setCleanSession(true);
+            return connect(client, options).flatMap(
+                    new Function<IMqttToken, MaybeSource<IMqttToken>>() {
+                        @Override
+                        public MaybeSource<IMqttToken> apply(IMqttToken token) throws Exception {
+                            return maybe;
+                        }
+                    });
         }
     }
 }
