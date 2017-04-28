@@ -36,7 +36,7 @@ class FullscreenActivity : RxAppCompatActivity() {
                 View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
 
         RxMqtt.connect(mqttAndroidClient)
-                .flatMap { RxMqtt.message(mqttAndroidClient, topic) }
+                .flatMapObservable { RxMqtt.message(mqttAndroidClient, topic) }
                 .map { String(it.payload) }
                 .observeOn(mainThread())
                 .subscribeOn(io())

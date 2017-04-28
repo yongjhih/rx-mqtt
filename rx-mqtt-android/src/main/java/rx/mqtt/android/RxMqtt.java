@@ -86,7 +86,7 @@ public class RxMqtt {
         if (client.isConnected()) {
             return msgObs;
         } else {
-            return reconnect(client).flatMap(
+            return reconnect(client).flatMapObservable(
                     new Function<IMqttToken, ObservableSource<MqttMessage>>() {
                 @Override
                 public ObservableSource<MqttMessage> apply(IMqttToken token) throws Exception {
@@ -129,7 +129,7 @@ public class RxMqtt {
         } else {
             MqttConnectOptions options = new MqttConnectOptions();
             options.setCleanSession(true);
-            return connect(client, options).flatMap(
+            return connect(client, options).flatMapObservable(
                     new Function<IMqttToken, ObservableSource<MqttMessage>>() {
                 @Override
                 public ObservableSource<MqttMessage> apply(IMqttToken token) throws Exception {
@@ -141,20 +141,20 @@ public class RxMqtt {
 
     @NonNull
     @CheckReturnValue
-    public static Observable<IMqttToken> connect(@NonNull final MqttAndroidClient client) {
+    public static Maybe<IMqttToken> connect(@NonNull final MqttAndroidClient client) {
         return connect(client, new MqttConnectOptions(), null);
     }
 
     @NonNull
     @CheckReturnValue
-    public static Observable<IMqttToken> connect(@NonNull final MqttAndroidClient client,
-                                                 @NonNull final MqttConnectOptions options) {
+    public static Maybe<IMqttToken> connect(@NonNull final MqttAndroidClient client,
+                                            @NonNull final MqttConnectOptions options) {
         return connect(client, options, null);
     }
 
     @NonNull
     @CheckReturnValue
-    public static Observable<IMqttToken> connect(
+    public static Maybe<IMqttToken> connect(
             @NonNull final MqttAndroidClient client,
             @NonNull final DisconnectedBufferOptions disconnectedBufferOptions) {
         return connect(client, new MqttConnectOptions(), disconnectedBufferOptions);
@@ -179,20 +179,22 @@ public class RxMqtt {
      * @param bufferOptions
      * @return
      */
-    public static Observable<IMqttToken> connect(
+    public static Maybe<IMqttToken> connect(
             @NonNull final MqttAndroidClient client,
             @NonNull final MqttConnectOptions options,
             @Nullable final DisconnectedBufferOptions bufferOptions) {
-        return Observable.create(new ObservableOnSubscribe<IMqttToken>() {
+        return Maybe.create(new MaybeOnSubscribe<IMqttToken>() {
             @NonNull IMqttToken mToken = new SimpleMqttToken();
             @Override
             public void subscribe(
-                    @NonNull final ObservableEmitter<IMqttToken> emitter) throws Exception {
+                    @NonNull final MaybeEmitter<IMqttToken> emitter) throws Exception {
                 client.setCallback(new MqttCallbackExtended() {
                     @Override
                     public void connectComplete(boolean reconnect, String serverURI) {
-                        if (!emitter.isDisposed()) {
-                            emitter.onNext(mToken);
+                        if (!reconnect) {
+                            if (!emitter.isDisposed()) {
+                                emitter.onSuccess(mToken);
+                            }
                         }
                     }
 
@@ -227,7 +229,7 @@ public class RxMqtt {
                                 client.setBufferOpts(bufferOptions);
                             }
                             mToken = token;
-                            emitter.onNext(token);
+                            emitter.onSuccess(token);
                         }
                     }
 
@@ -270,17 +272,17 @@ public class RxMqtt {
         return null;
     }
 
-    public static Observable<IMqttToken> reconnect(@NonNull final MqttAndroidClient client) {
+    public static Maybe<IMqttToken> reconnect(@NonNull final MqttAndroidClient client) {
         return reconnect(client, reconnectOptions());
     }
 
-    public static Observable<IMqttToken> reconnect(
+    public static Maybe<IMqttToken> reconnect(
             @NonNull final MqttAndroidClient client,
             @NonNull final MqttConnectOptions options) {
         return reconnect(client, reconnectOptions(options), null);
     }
 
-    public static Observable<IMqttToken> reconnect(
+    public static Maybe<IMqttToken> reconnect(
             @NonNull final MqttAndroidClient client,
             @NonNull final MqttConnectOptions options,
             @Nullable final DisconnectedBufferOptions bufferOptions) {
@@ -462,7 +464,7 @@ public class RxMqtt {
         } else {
             MqttConnectOptions options = new MqttConnectOptions();
             options.setCleanSession(true);
-            return connect(client, options).firstElement().flatMap(
+            return connect(client, options).flatMap(
                     new Function<IMqttToken, MaybeSource<IMqttToken>>() {
                         @Override
                         public MaybeSource<IMqttToken> apply(IMqttToken token) throws Exception {
