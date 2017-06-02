@@ -16,8 +16,6 @@ import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.eclipse.paho.client.mqttv3.internal.wire.MqttWireMessage;
 
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -38,9 +36,7 @@ import io.reactivex.ObservableSource;
 import io.reactivex.annotations.CheckReturnValue;
 import io.reactivex.annotations.NonNull;
 import io.reactivex.annotations.Nullable;
-import io.reactivex.functions.Cancellable;
 import io.reactivex.functions.Function;
-import io.reactivex.schedulers.Schedulers;
 
 /**
  * Created by andrew on 11/28/16.
@@ -68,7 +64,6 @@ public class RxMqtt {
                                                     @NonNull final String topic) {
         final Observable<MqttMessage> msgObs =
                 Observable.create(new ObservableOnSubscribe<MqttMessage>() {
-            @Override
             public void subscribe(
                     @NonNull final ObservableEmitter<MqttMessage> emitter) throws Exception {
                 client.subscribe(topic, 0, new IMqttMessageListener() {
@@ -191,10 +186,8 @@ public class RxMqtt {
                 client.setCallback(new MqttCallbackExtended() {
                     @Override
                     public void connectComplete(boolean reconnect, String serverURI) {
-                        if (!reconnect) {
-                            if (!emitter.isDisposed()) {
-                                emitter.onSuccess(mToken);
-                            }
+                        if (!reconnect && !emitter.isDisposed()) {
+                            emitter.onSuccess(mToken);
                         }
                     }
 

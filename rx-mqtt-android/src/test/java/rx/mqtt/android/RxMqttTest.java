@@ -19,7 +19,7 @@ import io.reactivex.functions.Consumer;
 import io.reactivex.observers.TestObserver;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
-import static org.junit.Assert.*;
+import static org.junit.Assert.fail;
 
 @RunWith(RobolectricTestRunner.class)
 //@RunWith(RobolectricGradleTestRunner.class)
@@ -61,17 +61,17 @@ public class RxMqttTest {
         observer.assertTerminated();
     }
 
-    private MqttService mqttService;
-    private ServiceController<MqttService> controller;
+    //private MqttService mqttService;
+    //private ServiceController<MqttService> controller;
 
     @Before
     public void setUp() {
-        controller = Robolectric.buildService(MqttService.class);
-        mqttService = controller.attach().create().get();
+        //controller = Robolectric.buildService(MqttService.class);
+        //mqttService = controller.attach().create().get();
     }
 
     @After
     public void tearDown() {
-        controller.destroy();
+        //controller.destroy();
     }
 }
