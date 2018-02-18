@@ -2,5 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="rx.mqtt.android">
     <uses-permission android:name="android.permission.INTERNET" />
-    <service android:name="org.eclipse.paho.android.service.MqttService" />
+    <application>
+        <service android:name="org.eclipse.paho.android.service.MqttService" />
+    </application>
 </manifest>
