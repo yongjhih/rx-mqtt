@@ -7,6 +7,77 @@
 
 ## Usage
 
+Before:
+
+```java
+final MqttAsyncClient client = new MqttAsyncClient(url, id, persistence)
+
+client.setCallback(new MqttCallback() { // message
+    @Override
+    public void connectionLost(@Nullable final Throwable e) {
+        if (e != null) {
+            e.printStackTrace();
+        } else {
+            (new RuntimeException("Connection Lost")).printStackTrace();
+        }
+    }
+
+    @Override
+    public void messageArrived(@NonNull final String topic,
+                               @NonNull final MqttMessage message)
+            throws Exception {
+         Gson.parse(message.getPayload(), Telemetry.class)
+    }
+
+    @Override
+    public void deliveryComplete(IMqttDeliveryToken token) {
+        // nothing
+    }
+});
+
+MqttConnectOptions options = new MqttConnectOptions();
+options.setCleanSession(true);
+client.connect(options, null, new IMqttActionListener() {
+    @Override
+    public void onSuccess(@NonNull final IMqttToken token) {
+        client.subscribe(topic, 0, null, new IMqttActionListener() {
+            @Override
+            public void onSuccess(@NonNull IMqttToken token) {
+                // nothing
+            }
+
+            @Override
+            public void onFailure(@NonNull final IMqttToken token,
+                                  @Nullable final Throwable e) {
+                if (e != null) {
+                    e.printStackTrace();
+                } else {
+                    (new RuntimeException("Connection Lost")).printStackTrace();
+                }
+            }
+        }, new IMqttMessageListener() {
+            @Override
+            public void messageArrived(String topic, MqttMessage message)
+                    throws Exception {
+                // nothing
+            }
+        });
+    }
+
+    @Override
+    public void onFailure(@NonNull final IMqttToken token,
+                          @Nullable final Throwable e) {
+        if (e != null) {
+            e.printStackTrace();
+        } else {
+            (new RuntimeException("Connection Lost")).printStackTrace();
+        }
+    }
+});
+```
+
+After:
+
 For pure Java:
 
 ```java
